@@ -1,6 +1,13 @@
-# Ham.Live (Open-Source Edition)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/HL-main.svg">
+    <img src="docs/HL-main-light.svg" alt="Ham.Live — Interactive Nets Made Easy" width="340">
+  </picture>
+</p>
 
-**Self-hostable web app for running amateur radio nets.**
+<h1 align="center">Ham.Live (Open-Source Edition)</h1>
+
+<p align="center"><strong>Self-hostable web app for running amateur radio nets.</strong></p>
 
 Ham.Live is a browser-first application that helps amateur radio operators discover, join, and run
 **nets** — coordinated on-air meetups where stations check in, exchange signal reports, and follow a
