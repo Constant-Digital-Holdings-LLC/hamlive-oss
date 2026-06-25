@@ -14,6 +14,12 @@ const EMAIL_FROM =
 if (emailEnabled) {
     sgMail.setApiKey(conf.sendgrid_api_key);
 }
+// SendGrid dynamic-template ID for the Net Close Report (the post-net log emailed
+// to the net owner when a net closes). Self-hosters: create your own template from
+// docs/email-templates/net-close-report.html and set SENDGRID_NET_CLOSE_TEMPLATE_ID.
+// When unset, the close-report email is skipped (all other features still work).
+const NET_CLOSE_TEMPLATE_ID =
+    process.env.SENDGRID_NET_CLOSE_TEMPLATE_ID || conf.sendgrid_net_close_template_id || '';
 const humanizeDuration = require('humanize-duration');
 const { getFlexOptionsByUser, fetchChatLog } = require('../lib/serverUtils');
 const { logger } = require('./logger');
@@ -106,6 +112,16 @@ class EmailBase {
             const subject =
                 emailData.subject || emailData.dynamic_template_data?.subject || '(templated email)';
             logger.info(`[email disabled] Would send "${subject}" to ${validRecipients.join(', ')}`);
+            return;
+        }
+        if ('templateId' in emailData && !emailData.templateId) {
+            const skipSubject =
+                emailData.dynamic_template_data?.subject || emailData.subject || '(templated email)';
+            logger.warn(
+                `[email] Skipping "${skipSubject}" — no SendGrid template configured. ` +
+                    `Set SENDGRID_NET_CLOSE_TEMPLATE_ID (see docs/email-templates/). ` +
+                    `Recipients: ${validRecipients.join(', ')}`
+            );
             return;
         }
         for (let attempt = 0; attempt < 3; attempt++) {
@@ -267,7 +283,7 @@ class NetCloseReport extends EmailBase {
         super({
             body: {
                 from: EMAIL_FROM,
-                templateId: 'd-e9f0060962884a80a9b20ec8591483cf',
+                templateId: NET_CLOSE_TEMPLATE_ID,
                 dynamic_template_data: {
                     subject: `${title} - Net Close Report`,
                     url: `${conf.base_url}${url}`,

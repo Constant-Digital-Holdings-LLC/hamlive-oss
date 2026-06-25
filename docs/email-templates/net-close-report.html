@@ -1,0 +1,43 @@
+<html>
+    <head>
+    <title>{{{subject}}}</title>
+    </head>
+    <body>
+        <p><h3><a href='{{url}}'>{{{title}}} </a></h3></p>
+        
+            {{#if startedAtString}}
+                <p>
+                (Net Start Time: {{startedAtString}})
+                </p>
+            {{/if}}
+            
+        <table style='border: 1px solid; padding: 0; border-spacing: 0;'>
+            <caption>Station Info</caption>
+              
+                <thead>
+                <tr>
+                    <th>Role</th>
+                    <th>CallSign</th>
+                    <th>Check-In Time</th>
+                </tr>
+            </thead>
+              
+              
+            {{#each formattedAttendees}}
+                <tr style="{{#if this.highlight}}background-color: lightgray;{{/if}}">
+                    <td style="padding: 3px 6px;">
+                        {{#if this.role}}
+                            [{{role}}]
+                        {{/if}}
+                    </td>
+                    <td style="padding: 3px 6px;"><strong>{{this.callSign}}</strong>
+                        {{#if this.sigReport}}
+                        ({{sigReport}})
+                        {{/if}}
+                    </td>
+                    <td style="padding: 3px 6px;"><em>{{this.checkInTime}}</em></td>
+                </tr>
+            {{/each}}
+        </table>        
+    </body>
+</html>
