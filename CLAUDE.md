@@ -61,6 +61,50 @@ TypeScript sources under `server/src/`; the rest are **maintained directly as Ja
 `.js`. **EJS views live only in `server/dist/views/`** (no `src` counterpart). Subpath imports:
 `#@server/*` → `server/dist/*`, `#@client/*` → `client/dist/public/js/*`. See `CONTRIBUTING.md`.
 
+## Architectural direction — the `liveNet` pattern is THE standard ⭐ (mandatory for new work)
+
+**This is the required architecture for the platform — not a suggestion, and not one option among
+several.** Every new screen **MUST** follow it, and every screen still built the old way **MUST** be
+ported to it whenever it is touched. The mandated destination is a **100% TypeScript, framework-free
+MPA**.
+
+> **`client/src/public/js/byView/liveNet/main.ts` is the reference implementation. Copy its shape for
+> every new page. Do not invent a different structure, and do not introduce a front-end framework to
+> "solve" what this pattern already solves.**
+
+Ham.Live is a multi-page app: each screen is a server-rendered EJS view with a per-view TypeScript
+entry point that hydrates it with reactive data + native Web Component widgets. Three layers, always:
+
+1. **Typed endpoint → reactive store.** `lib/stores.ts` defines `ReactiveStore<T extends
+   EndPointResponse>` (abstract); a concrete subclass per data domain (e.g. `LiveNetReactiveStore`,
+   `FavoritesReactiveStore`) binds an `EndPointClient` and owns **all** data sync — a short-poll that
+   **auto-upgrades to SSE** when the response carries an `ssePath`, hash-based change detection, an
+   optimistic-update "in-flight window," and a subscriber pub/sub. **Widgets never fetch; the store
+   does.**
+2. **Native Web Component widgets.** `lib/widgets.ts` defines `HamLiveElement<T extends
+   ReactiveStore>` (abstract), which **extends native `HTMLElement`** and implements
+   `StoreSubscriber`. Widgets register as `hl-<tag>` custom elements (`customElements.define`), use a
+   closed **shadow DOM** with a shared adopted stylesheet, and implement a fixed contract:
+   `getTemplate()`, `didMyDataSegmentChange()`, `render()`, `onConnected()`, `onDisconnected()`. On a
+   store update a widget re-renders **only its own changed data segment** — fine-grained reactivity,
+   no vDOM, no framework.
+3. **Per-view composition root.** `byView/<view>/main.ts` (exemplar: `byView/liveNet/main.ts`) is the
+   *only* wiring: create `EndPointClient`(s) → instantiate the `ReactiveStore`(s) → call each
+   widget's static `.init(store)` (wrapped in `initAndLogError` for isolation) → `store.init()`.
+
+**Hard rules — do not violate on any new or modified screen:**
+- ✅ New screen ⇒ a TS `byView/<view>/main.ts` + a `ReactiveStore` subclass per data source +
+  `HamLiveElement` widgets, composed exactly the way `liveNet/main.ts` does it.
+- 🚫 **No** front-end framework (React/Vue/etc.). **No** data fetching inside a widget — the store
+  owns all I/O. **No** ad-hoc/inline DOM scripts or one-off jQuery-style glue. **No** new
+  plain-JavaScript view code.
+- 🔁 Touching legacy JS? **Port it to this pattern** — do not extend the old JS in place.
+- 🎯 Destination: **100% TypeScript**, client and server (see "Repo layout & the JS→TS migration").
+
+Reference (study before writing a new screen): **`client/src/public/js/byView/liveNet/main.ts` — copy
+this**, plus `lib/stores.ts` (`ReactiveStore`) and `lib/widgets.ts` (`HamLiveElement`); background in
+`docs/client-framework.md`, `docs/client-reactive-pattern.svg`, `docs/sse-architecture.md`.
+
 ## Configuration
 
 - **Env-var driven** — `.env.example` documents everything; config is loaded by
