@@ -9,6 +9,7 @@ const GoogleStrategy = require('passport-google-oauth20');
 const MagicLoginStrategy = require('passport-magic-login').default;
 const gravatar = require('gravatar');
 const { EmailBase, emailEnabled } = require('../lib/userNotification');
+const { getSafeGoogleDisplayName } = require('../lib/googleProfileDisplayName');
 
 //MagicLogin Auth:
 const magicLogin = new MagicLoginStrategy({
@@ -146,6 +147,7 @@ if (googleAuthEnabled) {
             //passport callback function
 
             logger.debug('Google authenticated: ' + profile.displayName);
+            const safeDisplayName = getSafeGoogleDisplayName(profile);
 
             //check if user already exists in our db
             UserProfile.findOneAndUpdate(
@@ -171,7 +173,7 @@ if (googleAuthEnabled) {
                     // if not, create user in our db
                     new UserProfile({
                         lastAuthVia: 'google',
-                        displayName: profile.displayName,
+                        displayName: safeDisplayName,
                         googleId: profile.id,
                         flexOptions: {
                             option: {}

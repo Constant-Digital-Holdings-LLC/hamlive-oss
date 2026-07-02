@@ -15,10 +15,10 @@ const userProfileSchema = new Schema(
             required: [true, 'display name required'],
             unique: false,
             minlength: 2,
-            maxlength: 20,
+            maxlength: 40,
             validate: {
                 validator: function (v) {
-                    return /^[A-zÀ-ú-' ]+$/.test(v);
+                    return /^[\p{L}\p{N}'()\/ -]+$/u.test(v);
                 },
                 message: 'invalid characters in display name'
             }
