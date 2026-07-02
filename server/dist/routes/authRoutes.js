@@ -8,7 +8,7 @@ const UserProfile = require('../models/userProfile').getUserProfile(null);
 const GoogleStrategy = require('passport-google-oauth20');
 const MagicLoginStrategy = require('passport-magic-login').default;
 const gravatar = require('gravatar');
-const { EmailBase, emailEnabled } = require('../lib/userNotification');
+const { EmailBase, emailEnabled, renderMagicLinkEmail } = require('../lib/userNotification');
 const { getSafeGoogleDisplayName } = require('../lib/googleProfileDisplayName');
 
 //MagicLogin Auth:
@@ -36,7 +36,7 @@ const magicLogin = new MagicLoginStrategy({
         try {
             const email = new EmailBase({
                 subject: 'Click to finish signing in',
-                message: `Click this <a clicktracking=off href='${link}'>LINK</a> to finish logging in`
+                message: renderMagicLinkEmail(link)
             });
 
             await email.sendMailToAddrs([destination]);

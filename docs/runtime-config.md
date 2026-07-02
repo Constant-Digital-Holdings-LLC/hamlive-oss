@@ -20,9 +20,7 @@ The server loads configuration via `server/dist/lib/configLib.js` in this order:
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
 commonConfigf = fs.readFileSync('.../commonConfig.yaml', 'utf8');
-baseConfigf   = fs.readFileSync(NODE_ENV === 'development'
-                    ? '.../devConfig.yaml'
-                    : '.../prodConfig.yaml', 'utf8');
+baseConfigf = fs.readFileSync(NODE_ENV === 'development' ? '.../devConfig.yaml' : '.../prodConfig.yaml', 'utf8');
 
 conf = _.merge(YAML.parse(commonConfigf), YAML.parse(baseConfigf));
 // then overlay env vars...
@@ -56,7 +54,7 @@ Contains **non-secret, structural** settings shared across all environments:
 - Help URL override placeholder
 
 > **All secrets and per-instance values are supplied via environment variables — they are never stored in the YAML.**
-> `commonConfig.yaml` explicitly states: *"Secrets below are intentionally NOT stored here."*
+> `commonConfig.yaml` explicitly states: _"Secrets below are intentionally NOT stored here."_
 > See [INSTALL.md](../INSTALL.md) and `.env.example` for the complete list.
 
 Key entries:
@@ -97,16 +95,16 @@ Production-specific overrides:
 
 ### Environment-specific differences
 
-| Setting | Development | Production |
-|---|---|---|
-| `nodeenv` | `development` | `production` |
-| `dbname` | `hamlive-dev` | `hamlive-prod` |
-| `base_url` (YAML default) | `http://localhost:3000` | `http://localhost:3000` (set `BASE_URL` env var) |
-| `loglevel` (YAML key, production logger only) | not set | `info` |
-| `realtime_mongoose_poolsize` | 5 | 20 |
-| `batch_mongoose_poolsize` | 1 | 2 |
-| `run_background_tasks_on_startup` | `true` | not set (false) |
-| `closeIdleNets.abandoned_after_hours` | 0.01 | 2 |
+| Setting                                       | Development             | Production                                       |
+| --------------------------------------------- | ----------------------- | ------------------------------------------------ |
+| `nodeenv`                                     | `development`           | `production`                                     |
+| `dbname`                                      | `hamlive-dev`           | `hamlive-prod`                                   |
+| `base_url` (YAML default)                     | `http://localhost:3000` | `http://localhost:3000` (set `BASE_URL` env var) |
+| `loglevel` (YAML key, production logger only) | not set                 | `info`                                           |
+| `realtime_mongoose_poolsize`                  | 5                       | 20                                               |
+| `batch_mongoose_poolsize`                     | 1                       | 2                                                |
+| `run_background_tasks_on_startup`             | `true`                  | not set (false)                                  |
+| `closeIdleNets.abandoned_after_hours`         | 0.01                    | 2                                                |
 
 ---
 
@@ -114,30 +112,33 @@ Production-specific overrides:
 
 All secrets and instance-specific values are supplied via environment variables. `configLib.js` overlays them onto the merged YAML config at startup.
 
-| Env var | `conf` key | Required | Purpose |
-|---|---|---|---|
-| `MONGODB_URI` | `conf.dburi` | Yes | MongoDB connection string |
-| `COOKIE_SESSION_KEY` | `conf.cookie_session_key` | Yes | Session cookie signing key |
-| `MAGIC_LINK_SECRET` | `conf.magic_link_secret` | Yes | JWT signing key for magic-link auth |
-| `BASE_URL` | `conf.base_url` | Yes (prod) | Public base URL (OAuth callbacks, email links) |
-| `SENDGRID_API_KEY` | `conf.sendgrid_api_key` | No | Email delivery; falls back to console if absent |
-| `GOOGLE_CLIENT_ID` | `conf.google_client_id` | No | Google OAuth2 (optional) |
-| `GOOGLE_CLIENT_SECRET` | `conf.google_client_secret` | No | Google OAuth2 (optional) |
-| `STREAM_API_KEY` | `conf.stream_api_key` | No | GetStream.io chat (optional) |
-| `STREAM_API_SECRET` | `conf.stream_api_secret` | No | GetStream.io chat (optional) |
-| `QRZ_USERNAME` | `conf.qrz_username` | No | QRZ.com callsign lookup (optional) |
-| `QRZ_PASSWORD` | `conf.qrz_password` | No | QRZ.com callsign lookup (optional) |
-| `GEO_KEY` | `conf.geo_key` | No | Azure Maps reverse geocoding (optional) |
-| `CMD_HELP_URL` | `conf.cmd_help_url` | No | Override net-command help URL |
-| `APP_NAME` | `conf.app_name` | No | Override display name |
-| `ADPLUGG_ACCESS_CODE` | `conf.adplugg_access_code` | No | AdPlugg ads provider ID |
-| `GOOGLE_ANALYTICS_ID` | `conf.google_analytics_id` | No | Google Analytics measurement ID |
-| `ADS_ENABLED` | `conf.ads_enabled` | No | `true` to enable ads (default: false) |
-| `ANALYTICS_ENABLED` | `conf.analytics_enabled` | No | `true` to enable analytics (default: false) |
-| `PORT` | (read directly) | No | HTTP port; defaults to 3000 |
-| `LOG_LEVEL` | (read by logger) | No | Production log level (error/warn/info/debug) |
-| `FORCE_HTTPS` | (read by server.js) | No | `true` to add x-forwarded-proto HTTPS redirect |
-| `HTTPS` | (read by server.js) | No | Dev only: `true` to serve over HTTPS with bundled cert |
+| Env var                          | `conf` key                            | Required   | Purpose                                                                     |
+| -------------------------------- | ------------------------------------- | ---------- | --------------------------------------------------------------------------- |
+| `MONGODB_URI`                    | `conf.dburi`                          | Yes        | MongoDB connection string                                                   |
+| `COOKIE_SESSION_KEY`             | `conf.cookie_session_key`             | Yes        | Session cookie signing key                                                  |
+| `MAGIC_LINK_SECRET`              | `conf.magic_link_secret`              | Yes        | JWT signing key for magic-link auth                                         |
+| `BASE_URL`                       | `conf.base_url`                       | Yes (prod) | Public base URL (OAuth callbacks, email links)                              |
+| `ZEPTOMAIL_API_KEY`              | `conf.zeptomail_api_key`              | No         | ZeptoMail email delivery; requires `EMAIL_FROM`                             |
+| `EMAIL_FROM`                     | `conf.email_from`                     | No         | Verified sender for ZeptoMail or SendGrid                                   |
+| `SENDGRID_API_KEY`               | `conf.sendgrid_api_key`               | No         | SendGrid email delivery; falls back to console if no provider is configured |
+| `SENDGRID_NET_CLOSE_TEMPLATE_ID` | `conf.sendgrid_net_close_template_id` | No         | SendGrid dynamic template for net-close reports                             |
+| `GOOGLE_CLIENT_ID`               | `conf.google_client_id`               | No         | Google OAuth2 (optional)                                                    |
+| `GOOGLE_CLIENT_SECRET`           | `conf.google_client_secret`           | No         | Google OAuth2 (optional)                                                    |
+| `STREAM_API_KEY`                 | `conf.stream_api_key`                 | No         | GetStream.io chat (optional)                                                |
+| `STREAM_API_SECRET`              | `conf.stream_api_secret`              | No         | GetStream.io chat (optional)                                                |
+| `QRZ_USERNAME`                   | `conf.qrz_username`                   | No         | QRZ.com callsign lookup (optional)                                          |
+| `QRZ_PASSWORD`                   | `conf.qrz_password`                   | No         | QRZ.com callsign lookup (optional)                                          |
+| `GEO_KEY`                        | `conf.geo_key`                        | No         | Azure Maps reverse geocoding (optional)                                     |
+| `CMD_HELP_URL`                   | `conf.cmd_help_url`                   | No         | Override net-command help URL                                               |
+| `APP_NAME`                       | `conf.app_name`                       | No         | Override display name                                                       |
+| `ADPLUGG_ACCESS_CODE`            | `conf.adplugg_access_code`            | No         | AdPlugg ads provider ID                                                     |
+| `GOOGLE_ANALYTICS_ID`            | `conf.google_analytics_id`            | No         | Google Analytics measurement ID                                             |
+| `ADS_ENABLED`                    | `conf.ads_enabled`                    | No         | `true` to enable ads (default: false)                                       |
+| `ANALYTICS_ENABLED`              | `conf.analytics_enabled`              | No         | `true` to enable analytics (default: false)                                 |
+| `PORT`                           | (read directly)                       | No         | HTTP port; defaults to 3000                                                 |
+| `LOG_LEVEL`                      | (read by logger)                      | No         | Production log level (error/warn/info/debug)                                |
+| `FORCE_HTTPS`                    | (read by server.js)                   | No         | `true` to add x-forwarded-proto HTTPS redirect                              |
+| `HTTPS`                          | (read by server.js)                   | No         | Dev only: `true` to serve over HTTPS with bundled cert                      |
 
 **`loglevel` vs `LOG_LEVEL`**: `loglevel` is a YAML key used only as a reference value in the config object. The production logger (`node-json-logger`) reads `process.env.LOG_LEVEL` directly; that env var is not overlaid via `configLib.js`. In development, `logger.js` uses a colorized console logger that ignores both.
 

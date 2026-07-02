@@ -11,25 +11,28 @@ This guide covers two paths:
 
 ## Prerequisites
 
-| Tool | Version | Notes |
-| --- | --- | --- |
-| **Node.js** | 18 LTS or newer | <https://nodejs.org> |
-| **MongoDB** | 6 or newer (bundled `docker-compose.yml` uses `mongo:7`) | Local via Docker (recommended) or a managed database |
-| **Git** | any | to clone the repository |
-| **Docker Desktop** | optional | easiest way to run MongoDB locally |
-| **OpenSSL** | optional | only if you opt into local HTTPS (`HTTPS=true`) and regenerate the cert |
+| Tool               | Version                                                  | Notes                                                                   |
+| ------------------ | -------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Node.js**        | 18 LTS or newer                                          | <https://nodejs.org>                                                    |
+| **MongoDB**        | 6 or newer (bundled `docker-compose.yml` uses `mongo:7`) | Local via Docker (recommended) or a managed database                    |
+| **Git**            | any                                                      | to clone the repository                                                 |
+| **Docker Desktop** | optional                                                 | easiest way to run MongoDB locally                                      |
+| **OpenSSL**        | optional                                                 | only if you opt into local HTTPS (`HTTPS=true`) and regenerate the cert |
 
 ### OS-specific setup
 
 **Windows**
+
 - Install Node.js (the MSI from nodejs.org) and [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 - Use **PowerShell** or **Git Bash**. All `npm run` scripts in this project are cross-platform.
 - A throwaway dev TLS certificate is included, so OpenSSL is not required.
 
 **macOS**
+
 - `brew install node` and install Docker Desktop (or `brew install mongodb-community` to run Mongo natively).
 
 **Linux**
+
 - Install Node.js (via your distro or [nodesource](https://github.com/nodesource/distributions))
   and Docker Engine + the Compose plugin (or install `mongodb` natively).
 
@@ -99,11 +102,11 @@ single-node replica set, named volume — data persists across restarts).
 - Install MongoDB Community Server for your OS.
 - Real-time updates use **change streams**, which require a **replica set** (not a standalone
   `mongod`). Start it as a single-node replica set and initiate it once:
-  ```bash
-  mongod --replSet rs0 --dbpath /your/data/dir
-  # in another shell, once:
-  mongosh --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})"
-  ```
+    ```bash
+    mongod --replSet rs0 --dbpath /your/data/dir
+    # in another shell, once:
+    mongosh --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})"
+    ```
 - Keep the default `MONGODB_URI=mongodb://localhost:27017/hamlive?directConnection=true` in `.env`
   (the `directConnection=true` flag is what lets the driver talk to a single-node replica set).
 
@@ -129,14 +132,14 @@ and fill in the values below.
 
 ### Required
 
-| Variable | What it is |
-| --- | --- |
-| `NODE_ENV` | `production` for a hosted instance |
-| `BASE_URL` | Public URL of your instance, e.g. `https://nets.yourclub.org` |
-| `MONGODB_URI` | Connection string to your MongoDB |
-| `COOKIE_SESSION_KEY` | Long random string used to sign session cookies |
-| `MAGIC_LINK_SECRET` | Long random string used to sign email login tokens |
-| `PORT` | Port to listen on (your platform may set this) |
+| Variable             | What it is                                                    |
+| -------------------- | ------------------------------------------------------------- |
+| `NODE_ENV`           | `production` for a hosted instance                            |
+| `BASE_URL`           | Public URL of your instance, e.g. `https://nets.yourclub.org` |
+| `MONGODB_URI`        | Connection string to your MongoDB                             |
+| `COOKIE_SESSION_KEY` | Long random string used to sign session cookies               |
+| `MAGIC_LINK_SECRET`  | Long random string used to sign email login tokens            |
+| `PORT`               | Port to listen on (your platform may set this)                |
 
 Generate strong secrets, for example:
 
@@ -148,20 +151,23 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 Each integration is independent — enable only what you want.
 
-| Integration | Account / where to sign up | Variables | Free tier? |
-| --- | --- | --- | --- |
-| **MongoDB Atlas** (database hosting) | <https://www.mongodb.com/atlas> | `MONGODB_URI` | Yes (M0) |
-| **Email delivery** (SendGrid) | <https://sendgrid.com> | `SENDGRID_API_KEY`, `EMAIL_FROM` | Limited free tier |
-| **Google sign-in** (OAuth) | <https://console.cloud.google.com/apis/credentials> | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Yes |
-| **Real-time chat** (GetStream) | <https://getstream.io> | `STREAM_API_KEY`, `STREAM_API_SECRET` | Yes (maker plan) |
-| **Callsign lookup** (QRZ.com) | <https://www.qrz.com/page/xml_data.html> | `QRZ_USERNAME`, `QRZ_PASSWORD` | Paid XML subscription |
-| **Reverse geocoding** (Azure Maps) | <https://azure.microsoft.com/products/azure-maps> | `GEO_KEY` | Yes (limited) |
+| Integration                          | Account / where to sign up                          | Variables                                  | Free tier?            |
+| ------------------------------------ | --------------------------------------------------- | ------------------------------------------ | --------------------- |
+| **MongoDB Atlas** (database hosting) | <https://www.mongodb.com/atlas>                     | `MONGODB_URI`                              | Yes (M0)              |
+| **Email delivery** (ZeptoMail)       | <https://www.zoho.com/zeptomail/>                   | `ZEPTOMAIL_API_KEY`, `EMAIL_FROM`          | Paid / trial varies   |
+| **Email delivery** (SendGrid)        | <https://sendgrid.com>                              | `SENDGRID_API_KEY`, `EMAIL_FROM`           | Limited free tier     |
+| **Google sign-in** (OAuth)           | <https://console.cloud.google.com/apis/credentials> | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Yes                   |
+| **Real-time chat** (GetStream)       | <https://getstream.io>                              | `STREAM_API_KEY`, `STREAM_API_SECRET`      | Yes (maker plan)      |
+| **Callsign lookup** (QRZ.com)        | <https://www.qrz.com/page/xml_data.html>            | `QRZ_USERNAME`, `QRZ_PASSWORD`             | Paid XML subscription |
+| **Reverse geocoding** (Azure Maps)   | <https://azure.microsoft.com/products/azure-maps>   | `GEO_KEY`                                  | Yes (limited)         |
 
 Notes:
-- **Email:** without `SENDGRID_API_KEY`, login links are logged to the server console (fine for
-  testing, **not** for a real instance). `EMAIL_FROM` must be a sender you've verified with your
-  email provider. The code is structured around SendGrid; adapting `server/dist/lib/userNotification.js`
-  to another provider is straightforward.
+
+- **Email:** without ZeptoMail or SendGrid configuration, login links are logged to the server
+  console (fine for testing, **not** for a real instance). `EMAIL_FROM` must be a sender you've
+  verified with your email provider. ZeptoMail is used when both `ZEPTOMAIL_API_KEY` and
+  `EMAIL_FROM` are set; if both ZeptoMail and SendGrid are configured, ZeptoMail wins. SendGrid is
+  still supported with `SENDGRID_API_KEY`.
 - **Google OAuth:** set the authorized redirect URI to `${BASE_URL}/auth/google/redirect`.
 - **Chat:** without GetStream keys, the chat panel is simply absent; nets work without it.
 - **Ads & analytics:** **disabled by default** in the community edition. To enable, set
@@ -206,14 +212,14 @@ A backup/restore/migrate CLI is included at `server/dist/bin/dbBackup.js` (it sh
 
 ## Troubleshooting
 
-| Symptom | Fix |
-| --- | --- |
-| "Your connection is not private" / `ERR_CERT_AUTHORITY_INVALID` | You're on `https://localhost` with the self-signed dev cert. Use **http://localhost:3000** (the default), or keep HTTPS and click through the warning. |
-| `MongooseServerSelectionError` | MongoDB isn't running / `MONGODB_URI` is wrong. Start `docker compose up -d` or check the URI. With Docker, give it ~20s on first start to initiate the replica set. |
-| `$changeStream stage is only supported on replica sets` | Your MongoDB is a standalone, not a replica set. Use the bundled `docker compose` (already a replica set) or start native `mongod` with `--replSet` as shown above. |
-| No login email arrives | Expected in local mode — the link is printed to the server console. For hosted instances, set `SENDGRID_API_KEY` and a verified `EMAIL_FROM`. |
-| Google button missing | Google OAuth isn't configured. Set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`. |
-| Chat panel missing | GetStream isn't configured. Set `STREAM_API_KEY` / `STREAM_API_SECRET`. |
+| Symptom                                                         | Fix                                                                                                                                                                                                   |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Your connection is not private" / `ERR_CERT_AUTHORITY_INVALID` | You're on `https://localhost` with the self-signed dev cert. Use **http://localhost:3000** (the default), or keep HTTPS and click through the warning.                                                |
+| `MongooseServerSelectionError`                                  | MongoDB isn't running / `MONGODB_URI` is wrong. Start `docker compose up -d` or check the URI. With Docker, give it ~20s on first start to initiate the replica set.                                  |
+| `$changeStream stage is only supported on replica sets`         | Your MongoDB is a standalone, not a replica set. Use the bundled `docker compose` (already a replica set) or start native `mongod` with `--replSet` as shown above.                                   |
+| No login email arrives                                          | Expected in local mode — the link is printed to the server console. For hosted instances, set `ZEPTOMAIL_API_KEY` and a verified `EMAIL_FROM`, or set `SENDGRID_API_KEY` and a verified `EMAIL_FROM`. |
+| Google button missing                                           | Google OAuth isn't configured. Set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.                                                                                                                       |
+| Chat panel missing                                              | GetStream isn't configured. Set `STREAM_API_KEY` / `STREAM_API_SECRET`.                                                                                                                               |
 
 More background is in [`docs/`](docs/), starting with
 [docs/developer-setup.md](docs/developer-setup.md) and [docs/runbook.md](docs/runbook.md).

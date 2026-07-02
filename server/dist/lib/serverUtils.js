@@ -27,6 +27,16 @@ const REQ_CALLSIGN = 0x0010;
 const REQ_NETOWNER = 0x0100;
 const REQ_SUPERUSER = 0x1000;
 
+const isValidEmailFrom = value => {
+    if (typeof value !== 'string') return false;
+
+    const trimmed = value.trim();
+    const match = trimmed.match(/^(.*?)<([^<>]+)>$/);
+    const address = match ? match[2].trim() : trimmed;
+
+    return validator.isEmail(address);
+};
+
 const publicEndpoints = app => {
     if ((!'listen') in app) throw new Error('publicEndpoints expected Express app instance as param');
 
@@ -184,11 +194,12 @@ const addServerInfo = async (req, res, next) => {
         const { callSign = null, displayName = null, id: userId = null, newAccount = false } = req.user || {};
         const { gracePeriodDays, ads, requestRateFactor, httpClientTimeout, chat, analytics, awayInMs } =
             res.locals.flexOpts || {};
-        const { applogname: appLogName, cmd_help_url: cmdHelpUrl = '', app_name: appName = 'Ham.Live' } =
-            conf || {};
+        const { applogname: appLogName, cmd_help_url: cmdHelpUrl = '', app_name: appName = 'Ham.Live' } = conf || {};
         const googleAuth = Boolean(conf.google_client_id && conf.google_client_secret);
         const chatEnabled = Boolean(conf.stream_api_key && conf.stream_api_secret);
-        const emailEnabled = Boolean(conf.sendgrid_api_key);
+        const emailEnabled = Boolean(
+            (conf.zeptomail_api_key && isValidEmailFrom(conf.email_from)) || conf.sendgrid_api_key
+        );
 
         // Ads & analytics are OFF by default in the community edition; they only
         // run when explicitly enabled AND a provider ID is configured.

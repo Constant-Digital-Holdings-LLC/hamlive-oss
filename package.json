@@ -15,7 +15,8 @@
         "build": "tsc -p server/tsconfig.json && tsc -p client/tsconfig.json",
         "dev": "node ./scripts/dev.js",
         "dev:watch": "cross-env NODE_ENV=development concurrently --kill-others \"tsc -p server/tsconfig.json -w\" \"tsc -p client/tsconfig.json -w\" \"nodemon --delay 2.5 server/dist/server.js\"",
-        "sync:types": "node -e \"require('fs').copyFileSync('client/src/public/js/types/commonTypesupport.ts','server/src/types/commonTypesupport.ts')\""
+        "sync:types": "node -e \"require('fs').copyFileSync('client/src/public/js/types/commonTypesupport.ts','server/src/types/commonTypesupport.ts')\"",
+        "verify:email": "node scripts/verify-email-providers.js"
     },
     "author": "Sean Lynch",
     "license": "MIT",
