@@ -8,7 +8,7 @@ const DISPLAY_NAME_MIN_LENGTH = displayNamePath.options.minlength;
 const DISPLAY_NAME_MAX_LENGTH = displayNamePath.options.maxlength;
 const DEFAULT_GOOGLE_DISPLAY_NAME = 'Google User';
 
-const trimSeparators = value => value.replace(/^[-' ]+|[-' ]+$/g, '');
+const trimSeparators = value => value.replace(/^[/' -]+|[/' -]+$/g, '');
 
 const sanitizeCandidate = candidate => {
     if (typeof candidate !== 'string') {

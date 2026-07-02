@@ -14,12 +14,12 @@ const validateDisplayName = value => displayNamePath.doValidateSync(value, {});
 
 const testCases = [
     {
-        name: 'long Google display name is sanitized and truncated',
+        name: 'long radio-style Google display name stays valid',
         profile: {
             displayName: 'Christophe David (ON6ZQ / AC6ZQ)',
             emails: [{ value: 'christophe@example.com' }]
         },
-        expected: 'Christophe David ONZ'
+        expected: 'Christophe David (ON6ZQ / AC6ZQ)'
     },
     {
         name: 'short valid display name stays unchanged',
