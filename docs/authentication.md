@@ -10,13 +10,13 @@ The implementation uses Passport.js and lives in `server/dist/routes/authRoutes.
 
 ## Authentication Stack
 
-| Package | Role |
-|---|---|
-| `passport` | Core authentication framework |
-| `passport-magic-login` | Magic-link (JWT) email strategy |
-| `passport-google-oauth20` | Google OAuth2 strategy (optional) |
-| `cookie-session` | Stateless encrypted session cookie |
-| `gravatar` | Default avatar URL for new accounts |
+| Package                   | Role                                |
+| ------------------------- | ----------------------------------- |
+| `passport`                | Core authentication framework       |
+| `passport-magic-login`    | Magic-link (JWT) email strategy     |
+| `passport-google-oauth20` | Google OAuth2 strategy (optional)   |
+| `cookie-session`          | Stateless encrypted session cookie  |
+| `gravatar`                | Default avatar URL for new accounts |
 
 There is no `passport-local`, no `bcrypt`, no `express-session`, and no `connect-mongo`.
 
@@ -33,7 +33,7 @@ Magic-link sign-in is always registered. It is powered by `passport-magic-login`
    ↓
 3. Server generates a signed JWT and calls sendMagicLink()
    ↓
-4. If SENDGRID_API_KEY is set: email is sent via SendGrid
+4. If ZeptoMail or SendGrid is configured: email is sent through the selected provider
    If not (local dev): link is printed to the server console
                        AND returned in the JSON response as devMagicLink
    ↓
@@ -51,7 +51,7 @@ Magic-link sign-in is always registered. It is powered by `passport-magic-login`
 
 ### Local development fallback
 
-When `SENDGRID_API_KEY` is absent, the sign-in link is:
+When no email provider is configured, the sign-in link is:
 
 - Printed to the server console at `info` level with a visible banner.
 - Returned to the browser in the `devMagicLink` field of the `/auth/magiclogin` JSON response.
@@ -60,11 +60,16 @@ This allows full end-to-end testing with no email configuration required.
 
 ### Configuration
 
-| Config key (via `conf`) | Env var | Required |
-|---|---|---|
-| `conf.magic_link_secret` | `MAGIC_LINK_SECRET` | Yes |
-| `conf.sendgrid_api_key` | `SENDGRID_API_KEY` | No (see fallback above) |
-| `conf.base_url` | `BASE_URL` | Yes (used to build the callback URL) |
+| Config key (via `conf`)  | Env var             | Required                             |
+| ------------------------ | ------------------- | ------------------------------------ |
+| `conf.magic_link_secret` | `MAGIC_LINK_SECRET` | Yes                                  |
+| `conf.zeptomail_api_key` | `ZEPTOMAIL_API_KEY` | No (requires `EMAIL_FROM`)           |
+| `conf.email_from`        | `EMAIL_FROM`        | No (required for provider delivery)  |
+| `conf.sendgrid_api_key`  | `SENDGRID_API_KEY`  | No (see fallback above)              |
+| `conf.base_url`          | `BASE_URL`          | Yes (used to build the callback URL) |
+
+ZeptoMail is preferred when both `ZEPTOMAIL_API_KEY` and `EMAIL_FROM` are set. If both ZeptoMail and
+SendGrid are configured, ZeptoMail is selected.
 
 The magic-link JWT TTL is 30 days (set in `jwtOptions.expiresIn`).
 
@@ -84,11 +89,14 @@ If the credentials are absent, the `/auth/google` and `/auth/google/redirect` ro
 ### Strategy configuration
 
 ```javascript
-new GoogleStrategy({
-    clientID:    conf.google_client_id,
-    clientSecret: conf.google_client_secret,
-    callbackURL: `${conf.base_url}/auth/google/redirect`
-}, callback)
+new GoogleStrategy(
+    {
+        clientID: conf.google_client_id,
+        clientSecret: conf.google_client_secret,
+        callbackURL: `${conf.base_url}/auth/google/redirect`
+    },
+    callback
+);
 ```
 
 `conf.google_client_id` and `conf.google_client_secret` come from `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — there are no `_DEV` / `_PROD` suffixes.
@@ -103,22 +111,22 @@ The Google callback mirrors the magic-link verify logic:
 
 ### Routes
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/auth/google` | Begin OAuth2 flow (scope: profile + email) |
-| `GET` | `/auth/google/redirect` | OAuth2 callback from Google |
+| Method | Path                    | Description                                |
+| ------ | ----------------------- | ------------------------------------------ |
+| `GET`  | `/auth/google`          | Begin OAuth2 flow (scope: profile + email) |
+| `GET`  | `/auth/google/redirect` | OAuth2 callback from Google                |
 
 Note: the callback path is `/auth/google/redirect`, not `/auth/google/callback`.
 
 ## Routes summary
 
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/auth/magiclogin` | Send magic-link email |
-| `GET` | `/auth/magiclogin/callback` | Validate JWT, establish session |
-| `GET` | `/auth/google` | Begin Google OAuth2 (optional) |
-| `GET` | `/auth/google/redirect` | Google OAuth2 callback (optional) |
-| `GET` | `/auth/logout` | Log out (async, Passport 0.6 style) |
+| Method | Path                        | Description                         |
+| ------ | --------------------------- | ----------------------------------- |
+| `POST` | `/auth/magiclogin`          | Send magic-link email               |
+| `GET`  | `/auth/magiclogin/callback` | Validate JWT, establish session     |
+| `GET`  | `/auth/google`              | Begin Google OAuth2 (optional)      |
+| `GET`  | `/auth/google/redirect`     | Google OAuth2 callback (optional)   |
+| `GET`  | `/auth/logout`              | Log out (async, Passport 0.6 style) |
 
 There is no `POST /auth/logout`.
 
@@ -127,10 +135,12 @@ There is no `POST /auth/logout`.
 Sessions use `cookie-session` — a stateless, signed cookie with no server-side store.
 
 ```javascript
-app.use(cookieSession({
-    maxAge: 3.5 * 24 * 60 * 60 * 1000, // 3.5 days
-    keys: [conf.cookie_session_key]
-}));
+app.use(
+    cookieSession({
+        maxAge: 3.5 * 24 * 60 * 60 * 1000, // 3.5 days
+        keys: [conf.cookie_session_key]
+    })
+);
 ```
 
 Key details:
@@ -176,11 +186,11 @@ There is no `level`, `callSign`, or `okToAdvertise` set at creation time. The `v
 
 Ham.Live uses a numeric level stored on `UserProfile`:
 
-| Level | Role |
-|---|---|
-| 0 | System administrator |
-| 1 | Advanced user / net control |
-| 2+ | Regular user |
+| Level | Role                        |
+| ----- | --------------------------- |
+| 0     | System administrator        |
+| 1     | Advanced user / net control |
+| 2+    | Regular user                |
 
 ### Authorization middleware
 

@@ -200,7 +200,7 @@ Provides: channel creation/deletion, user token issuance, message moderation, an
 ### Authentication Services
 
 - **Google OAuth2** — Optional. Enabled only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set. Strategy registered via `passport-google-oauth20`.
-- **Magic Link Email** — Primary passwordless auth via `passport-magic-login` and SendGrid (`SENDGRID_API_KEY`). When `SENDGRID_API_KEY` is not configured, the sign-in link is logged to the console and returned in the JSON response for local development.
+- **Magic Link Email** — Primary passwordless auth via `passport-magic-login` and optional email delivery. ZeptoMail is used when `ZEPTOMAIL_API_KEY` and `EMAIL_FROM` are configured; otherwise SendGrid is used when `SENDGRID_API_KEY` is configured. When no provider is configured, the sign-in link is logged to the console and returned in the JSON response for local development.
 - **QRZ.com API** — Optional callsign lookup and data caching. Disabled when `QRZ_USERNAME`/`QRZ_PASSWORD` are absent.
 
 ### `secureSign.js`

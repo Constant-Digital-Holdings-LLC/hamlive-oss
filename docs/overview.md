@@ -153,7 +153,8 @@ For detailed information about system operations and data management, see:
 
 **Third-party integrations:**
 
-- GetStream.io (chat with inline image sharing), SendGrid (email), and external lookups (QRZ.com)
+- GetStream.io (chat with inline image sharing), ZeptoMail or SendGrid (email), and external
+  lookups (QRZ.com)
 - Wired via server helpers and token/endorsement routes so credentials stay server-side
 
 ### Why This Architecture Matters
